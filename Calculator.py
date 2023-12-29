@@ -32,16 +32,16 @@ def construct_number(exp, i):
     :param i: index of beginning of number in the expression
     :return: the constructed number and its length in the expression
     """
-    ch = exp[i]
+    num = exp[i]
     pos = i + 1
-    if ch == '-':
+    if num == '-':
         while i < len(exp) and exp[pos] == '-':
-            ch += exp[pos]
+            num += exp[pos]
             pos += 1
     while pos < len(exp) and (exp[pos].isdigit() or exp[pos] == '.'):
-        ch += exp[pos]
+        num += exp[pos]
         pos += 1
-    return ch, pos - i
+    return num, pos - i
 
 
 def handle_term(exp, i):
@@ -51,48 +51,64 @@ def handle_term(exp, i):
     :param i: index of term to handle
     :return: the term and its length in the expression, or None for error
     """
-    ch = exp[i]
-    if ch not in OPERATORS and not ch.isdigit() and ch not in ('.', '(', ')'):
-        print("invalid expression:", ch)
+    term = exp[i]
+    if term not in OPERATORS and not term.isdigit() and term not in ('.', '(', ')'):
+        print("invalid term:", term)
         return None
-    elif ch.isdigit() or ch == '.' or (ch == '-' and (i == 0 or exp[i - 1] in OPERATORS)):
-        ch, length = construct_number(exp, i)
+    elif term.isdigit() or term == '.' or (term == '-' and (i == 0 or exp[i - 1] in OPERATORS)):
+        term, length = construct_number(exp, i)
         try:
-            ch = float(remove_minuses(ch))
+            term = float(remove_minuses(term))
         except ValueError:
-            print(ch, "not a number")
+            print(term, "not a number")
             return None
-        return ch, length
+        return term, length
     else:
-        return ch, 1
+        return term, 1
 
 
-def get_expression():
+def break_expression(exp):
     """
-    receives a math expression and breaks it into individual terms
+    breaks a math expression into individual terms
+    :param exp: math expression to break
     :return: a list containing the terms of the given expression
     """
-    infix = []
+    terms = []
     i = 0
-    exp = input("enter expression to calculate")
     exp = exp.replace(" ", "")
     while i < len(exp):
-        ch = handle_term(exp, i)
-        if ch is None:
-            return ch
-        infix.append(ch[0])
-        i += ch[1]
-    return infix
+        term = handle_term(exp, i)
+        if term is None:
+            return term
+        terms.append(term[0])
+        i += term[1]
+    return terms
 
 
 def turn_postfix(infix):
     stack = []
     postfix = []
+    for term in infix:
+        if isinstance(term, float):
+            postfix.append(term)
+        elif term == '(':
+            stack.append(term)
+        elif term == ')':
+            while stack[-1] != '(':
+                postfix.append(stack.pop())
+        else:
+            while stack and stack[-1] != '(' and OPERATORS[term] <= OPERATORS[stack[-1]]:
+                postfix.append(stack.pop())
+            stack.append(term)
+    while stack:
+        postfix.append(stack.pop())
+    return postfix
 
 
 def main():
     while True:
-        infix = get_expression()
+        exp = input("enter expression to calculate")
+        infix = break_expression(exp)
         if infix is None:
             continue
 
