@@ -56,6 +56,8 @@ def handle_term(exp, i):
         print("invalid term:", term)
         return None
     elif term.isdigit() or term == '.' or (term == '-' and (i == 0 or exp[i - 1] in OPERATORS)):
+        # should not enter if operator before minus is of right placement!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # maybe should put this in else?!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         term, length = construct_number(exp, i)
         try:
             term = float(remove_minuses(term))
@@ -96,6 +98,7 @@ def turn_postfix(infix):
         elif term == ')':
             while stack[-1] != '(':
                 postfix.append(stack.pop())
+            stack.pop()
         else:
             while stack and stack[-1] != '(' and OPERATORS[term] <= OPERATORS[stack[-1]]:
                 postfix.append(stack.pop())
@@ -111,6 +114,9 @@ def main():
         infix = break_expression(exp)
         if infix is None:
             continue
+        print(infix)
+        postfix = turn_postfix(infix)
+        print(postfix)
 
 
 if __name__ == '__main__':
