@@ -1,14 +1,5 @@
-OPERATORS = {'+': 1,
-             '-': 1,
-             '*': 2,
-             '/': 2,
-             '^': 3,
-             '@': 5,
-             '$': 5,
-             '&': 5,
-             '%': 4,
-             '~': 6,
-             '!': 6}
+from Operators import OPERATORS
+from CalculatorException import CalculatorException
 
 
 def remove_minuses(num):
@@ -44,6 +35,15 @@ def construct_number(exp, i):
     return num, pos - i
 
 
+def previous_for_unary(term):
+    """
+    checks if received term placed before a minus indicates of unary minus
+    :param term: term before minus
+    :return: True if indicates unary minus, False if binary
+    """
+    return term == '(' or term in OPERATORS and OPERATORS[term].location != 2
+
+
 def handle_term(exp, i):
     """
     handles a single term in a math expression
@@ -54,16 +54,14 @@ def handle_term(exp, i):
     term = exp[i]
     if term not in OPERATORS and not term.isdigit() and term not in ('.', '(', ')'):
         print("invalid term:", term)
-        return None
-    elif term.isdigit() or term == '.' or (term == '-' and (i == 0 or exp[i - 1] in OPERATORS)):
-        # should not enter if operator before minus is of right placement!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # maybe should put this in else?!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        raise CalculatorException
+    elif term.isdigit() or term == '.' or term == '-' and (i == 0 or previous_for_unary(exp[i-1])):
         term, length = construct_number(exp, i)
         try:
             term = float(remove_minuses(term))
         except ValueError:
             print(term, "not a number")
-            return None
+            raise CalculatorException
         return term, length
     else:
         return term, 1
@@ -79,15 +77,18 @@ def break_expression(exp):
     i = 0
     exp = exp.replace(" ", "")
     while i < len(exp):
-        term = handle_term(exp, i)
-        if term is None:
-            return term
-        terms.append(term[0])
-        i += term[1]
+        term, length = handle_term(exp, i)
+        terms.append(term)
+        i += length
     return terms
 
 
 def turn_postfix(infix):
+    """
+    turns an infix mathematical expression to its postfix representation
+    :param infix: list of infix math expression
+    :return: list of postfix math expression
+    """
     stack = []
     postfix = []
     for term in infix:
@@ -100,7 +101,7 @@ def turn_postfix(infix):
                 postfix.append(stack.pop())
             stack.pop()
         else:
-            while stack and stack[-1] != '(' and OPERATORS[term] <= OPERATORS[stack[-1]]:
+            while stack and stack[-1] != '(' and OPERATORS[term].precedence <= OPERATORS[stack[-1]].precedence:
                 postfix.append(stack.pop())
             stack.append(term)
     while stack:
@@ -110,13 +111,14 @@ def turn_postfix(infix):
 
 def main():
     while True:
-        exp = input("enter expression to calculate")
-        infix = break_expression(exp)
-        if infix is None:
-            continue
-        print(infix)
-        postfix = turn_postfix(infix)
-        print(postfix)
+        try:
+            exp = input("enter expression to calculate")
+            infix = break_expression(exp)
+            print(infix)
+            postfix = turn_postfix(infix)
+            print(postfix)
+        except CalculatorException:
+            pass
 
 
 if __name__ == '__main__':
