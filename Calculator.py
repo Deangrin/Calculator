@@ -55,7 +55,7 @@ def handle_term(exp, i):
     if term not in OPERATORS and not term.isdigit() and term not in ('.', '(', ')'):
         print("invalid term:", term)
         raise CalculatorException
-    elif term.isdigit() or term == '.' or term == '-' and (i == 0 or previous_for_unary(exp[i-1])):
+    elif term.isdigit() or term == '.' or term == '-' and (i == 0 or previous_for_unary(exp[i - 1])):
         term, length = construct_number(exp, i)
         try:
             term = float(remove_minuses(term))
@@ -89,7 +89,7 @@ def turn_postfix(infix):
     :param infix: list of infix math expression
     :return: list of postfix math expression
     """
-    stack = []
+    stack = []  # doesn't work properly for unary expressions, makes them work when they shouldn't: !3, 3~ !!!!!!!!!!!!!!
     postfix = []
     for term in infix:
         if isinstance(term, float):
@@ -109,6 +109,29 @@ def turn_postfix(infix):
     return postfix
 
 
+def calculate_postfix(postfix):
+    stack = []
+    for term in postfix:
+        if isinstance(term, float):
+            stack.append(term)
+        else:
+            try:
+                if OPERATORS[term].location == 1:
+                    op2 = stack.pop()
+                    op1 = stack.pop()
+                    stack.append(OPERATORS[term].calc(op1, op2))
+                else:
+                    op = stack.pop()
+                    stack.append(OPERATORS[term].calc(op))
+            except (IndexError, TypeError):
+                print("not enough operands for operator:", term)
+                raise CalculatorException
+    if len(stack) != 1:
+        print("invalid expression - not enough operators for operands")
+        raise CalculatorException
+    return stack
+
+
 def main():
     while True:
         try:
@@ -117,6 +140,8 @@ def main():
             print(infix)
             postfix = turn_postfix(infix)
             print(postfix)
+            result = calculate_postfix(postfix)
+            print(result)
         except CalculatorException:
             pass
 

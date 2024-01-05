@@ -134,8 +134,8 @@ class Factorial(object):
 
     @staticmethod
     def calc(op):
-        if not isinstance(op, int) or op < 0:
-            print("factorial operator can only be a positive integer")
+        if not op.is_integer() or op < 0:
+            print("factorial operand can only be a positive integer")
             raise CalculatorException
         if op <= 1:
             return 1
