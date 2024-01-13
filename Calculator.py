@@ -2,18 +2,17 @@ from Operators import OPERATORS
 from CalculatorException import CalculatorException
 
 
-def remove_minuses(num):
+def count_minuses(exp, i):
     """
-    removes redundant minuses from given number - cleaning a number from minuses
-    :param num: number to clean
-    :return: number after cleaning
+    counts the number of consecutive minuses at a given index in an expression
+    :param exp: string expression containing minuses
+    :param i: index in expression in which the minus count will begin
+    :return: number of consecutive minuses beginning in index i
     """
-    i = 0
-    while i < len(num) and num[i] == '-':
-        i += 1
-    if i % 2 == 0:
-        return num[i:]
-    return "-" + num[i:]
+    count = 0
+    while i + count < len(exp) and exp[i + count] == '-':
+        count += 1
+    return count
 
 
 def construct_number(exp, i):
@@ -21,27 +20,19 @@ def construct_number(exp, i):
     constructs a number from a given index in an expression
     :param exp: string expression containing the number
     :param i: index of beginning of number in the expression
-    :return: the constructed number and its length in the expression
+    :return: the constructed number and its original length in the expression
     """
-    num = exp[i]
-    pos = i + 1
-    if num == '-':
-        while i < len(exp) and exp[pos] == '-':
-            num += exp[pos]
-            pos += 1
+    num = ""
+    pos = i
+    if exp[pos] == '-':
+        minuses = count_minuses(exp, pos)
+        pos += minuses
+        if minuses % 2 == 1:
+            num = "-"
     while pos < len(exp) and (exp[pos].isdigit() or exp[pos] == '.'):
         num += exp[pos]
         pos += 1
     return num, pos - i
-
-
-def previous_for_unary(term):
-    """
-    checks if received term placed before a minus indicates of unary minus
-    :param term: term before minus
-    :return: True if indicates unary minus, False if binary
-    """
-    return term == '(' or term in OPERATORS and OPERATORS[term].location != 2
 
 
 def handle_term(exp, i):
@@ -49,20 +40,26 @@ def handle_term(exp, i):
     handles a single term in a math expression
     :param exp: string math expression
     :param i: index of term to handle
-    :return: the term and its length in the expression, or None for error
+    :return: the term and its length in the original expression
     """
     term = exp[i]
-    if term not in OPERATORS and not term.isdigit() and term not in ('.', '(', ')'):
+    if term == '_' or term not in OPERATORS and not term.isdigit() and term not in ('.', '(', ')'):
         print("invalid term:", term)
         raise CalculatorException
-    elif term.isdigit() or term == '.' or term == '-' and (i == 0 or previous_for_unary(exp[i - 1])):
+    elif term.isdigit() or term == '.' or term == '-' and (i != 0 and exp[i - 1] in OPERATORS
+                                                           and OPERATORS[exp[i - 1]].location != 2):
         term, length = construct_number(exp, i)
         try:
-            term = float(remove_minuses(term))
+            term = float(term)
         except ValueError:
             print(term, "not a number")
             raise CalculatorException
         return term, length
+    elif term == '-' and (i == 0 or exp[i - 1] == '('):
+        minuses = count_minuses(exp, i)
+        if minuses % 2 == 1:
+            return '_', minuses
+        return None, minuses
     else:
         return term, 1
 
@@ -75,10 +72,11 @@ def break_expression(exp):
     """
     terms = []
     i = 0
-    exp = exp.replace(" ", "")
+    exp = exp.replace(" ", "").replace("\t", "")
     while i < len(exp):
         term, length = handle_term(exp, i)
-        terms.append(term)
+        if term is not None:
+            terms.append(term)
         i += length
     return terms
 
@@ -110,6 +108,11 @@ def turn_postfix(infix):
 
 
 def calculate_postfix(postfix):
+    """
+    calculates a mathematical expression in postfix representation
+    :param postfix: list of postfix math expression
+    :return: calculation result of math expression
+    """
     stack = []
     for term in postfix:
         if isinstance(term, float):
@@ -127,15 +130,15 @@ def calculate_postfix(postfix):
                 print("not enough operands for operator:", term)
                 raise CalculatorException
     if len(stack) != 1:
-        print("invalid expression - not enough operators for operands")
+        print("invalid expression")
         raise CalculatorException
-    return stack
+    return stack.pop()
 
 
 def main():
     while True:
         try:
-            exp = input("enter expression to calculate")
+            exp = input("enter expression to calculate ")
             infix = break_expression(exp)
             print(infix)
             postfix = turn_postfix(infix)

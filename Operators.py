@@ -62,6 +62,9 @@ class Power(object):
 
     @staticmethod
     def calc(op1, op2):
+        if (-1 < op2 < 0 or 0 < op2 < 1) and op1 < 0:
+            print("cannot take a root out of a negative number")
+            raise CalculatorException
         return op1 ** op2
 
 
@@ -142,6 +145,41 @@ class Factorial(object):
         return op * Factorial.calc(op - 1)
 
 
+class Hash(object):
+    """
+    hash operator class
+    """
+    precedence = 6
+    location = 2
+
+    @staticmethod
+    def calc(op):
+        res = 0
+        if op < 0:
+            print("hash operand must be positive")
+            raise CalculatorException
+        for digit in str(op):
+            if digit != '.':
+                try:
+                    res += int(digit)
+                except ValueError:
+                    print("cannot perform hash on this number (may be inf or nan)")
+                    raise CalculatorException
+        return res
+
+
+class Negative(object):
+    """
+    unary minus operator class. not for use
+    """
+    precedence = 2.5  # hope this is what you meant in the document and not 3.5 :|
+    location = 0
+
+    @staticmethod
+    def calc(op):
+        return -op
+
+
 OPERATORS = {'+': Plus,
              '-': Minus,
              '*': Mult,
@@ -152,4 +190,6 @@ OPERATORS = {'+': Plus,
              '&': Min,
              '%': Modulo,
              '~': Tilde,
-             '!': Factorial}
+             '!': Factorial,
+             '#': Hash,
+             '_': Negative}
