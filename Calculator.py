@@ -155,7 +155,7 @@ def calculate_postfix(postfix):
             except (IndexError, TypeError):
                 print("not enough operands for operator:", term)
                 raise CalculatorException
-            except OverflowError:
+            except (OverflowError, RecursionError):
                 print("result is too large")
                 raise CalculatorException
     if len(stack) != 1:
@@ -172,9 +172,7 @@ def main():
         try:
             exp = input("enter expression to calculate ")
             infix = break_expression(exp)
-            print(infix)
             postfix = turn_postfix(infix)
-            print(postfix)
             result = calculate_postfix(postfix)
             print(result)
         except CalculatorException:
