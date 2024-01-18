@@ -24,15 +24,14 @@ def construct_number(exp, i):
     """
     num = ""
     pos = i
-    if exp[pos] == '-':
-        minuses = count_minuses(exp, pos)
-        pos += minuses
-        if minuses % 2 == 1:
-            num = "-"
     while pos < len(exp) and (exp[pos].isdigit() or exp[pos] == '.'):
         num += exp[pos]
         pos += 1
-    return num, pos - i
+    try:
+        return float(num), pos - i
+    except ValueError:
+        print(num, "not a number")
+        raise CalculatorException
 
 
 def handle_term(exp, i):
@@ -43,25 +42,45 @@ def handle_term(exp, i):
     :return: the term and its length in the original expression
     """
     term = exp[i]
-    if term == '_' or term not in OPERATORS and not term.isdigit() and term not in ('.', '(', ')'):
+    if term not in OPERATORS and not term.isdigit() and term not in ('.', '(', ')'):
         print("invalid term:", term)
         raise CalculatorException
-    elif term.isdigit() or term == '.' or term == '-' and (i != 0 and exp[i - 1] in OPERATORS
-                                                           and OPERATORS[exp[i - 1]].location != 2):
-        term, length = construct_number(exp, i)
-        try:
-            term = float(term)
-        except ValueError:
-            print(term, "not a number")
-            raise CalculatorException
-        return term, length
-    elif term == '-' and (i == 0 or exp[i - 1] == '('):
+    elif term.isdigit() or term == '.':
+        return construct_number(exp, i)
+    elif term == '-' and (i == 0 or exp[i-1] == '(' or exp[i-1] in OPERATORS and OPERATORS[exp[i-1]].location != 2):
         minuses = count_minuses(exp, i)
+        valid_placement('- ', exp, i + minuses)
+        if i == 0 or exp[i - 1] == '(':
+            if minuses % 2 == 1:
+                return '- ', minuses
+            return None, minuses
         if minuses % 2 == 1:
-            return '_', minuses
+            return '-  ', minuses
         return None, minuses
     else:
         return term, 1
+
+
+def valid_placement(term, exp, i):
+    """
+    checks if given term and its following term (exp[i]) can be placed together
+    :param term: current term
+    :param exp: string math expression
+    :param i: index of following term in expression
+    :raise: CalculatorException if terms cannot be placed together, otherwise doesn't
+    """
+    if term in OPERATORS and OPERATORS[term].location == 0:
+        if i >= len(exp) or exp[i] not in ('(', '.', '-') and not exp[i].isdigit():
+            print(term, "must be followed by a number, a minus or parentheses")
+            raise CalculatorException
+    elif term in OPERATORS and OPERATORS[term].location == 2:
+        if i < len(exp) and (exp[i].isdigit() or exp[i] in ('(', '.')):
+            print(term, "cannot be followed by a number or parentheses")
+            raise CalculatorException
+    elif (i < len(exp) and
+          (isinstance(term, float) and exp[i] == '(' or term == ')' and (exp[i].isdigit() or exp[i] == '.'))):
+        print("numbers and parentheses must be separated by an operator")
+        raise CalculatorException
 
 
 def break_expression(exp):
@@ -76,6 +95,7 @@ def break_expression(exp):
     while i < len(exp):
         term, length = handle_term(exp, i)
         if term is not None:
+            valid_placement(term, exp, i + length)
             terms.append(term)
         i += length
     return terms
@@ -87,7 +107,7 @@ def turn_postfix(infix):
     :param infix: list of infix math expression
     :return: list of postfix math expression
     """
-    stack = []  # doesn't work properly for unary expressions, makes them work when they shouldn't: !3, 3~ !!!!!!!!!!!!!!
+    stack = []
     postfix = []
     for term in infix:
         if isinstance(term, float):
@@ -95,14 +115,20 @@ def turn_postfix(infix):
         elif term == '(':
             stack.append(term)
         elif term == ')':
-            while stack[-1] != '(':
+            while stack and stack[-1] != '(':
                 postfix.append(stack.pop())
+            if not stack:  # can change for try, whatever is preferred...
+                print("unmatched closing parenthesis")
+                raise CalculatorException
             stack.pop()
         else:
             while stack and stack[-1] != '(' and OPERATORS[term].precedence <= OPERATORS[stack[-1]].precedence:
                 postfix.append(stack.pop())
             stack.append(term)
     while stack:
+        if stack[-1] == '(':
+            print("unmatched opening parenthesis")
+            raise CalculatorException
         postfix.append(stack.pop())
     return postfix
 
@@ -129,6 +155,9 @@ def calculate_postfix(postfix):
             except (IndexError, TypeError):
                 print("not enough operands for operator:", term)
                 raise CalculatorException
+            except OverflowError:
+                print("result is too large")
+                raise CalculatorException
     if len(stack) != 1:
         print("invalid expression")
         raise CalculatorException
@@ -136,6 +165,9 @@ def calculate_postfix(postfix):
 
 
 def main():
+    """
+    runs the calculator - receives a mathematical expression and prints its calculation result
+    """
     while True:
         try:
             exp = input("enter expression to calculate ")
@@ -147,6 +179,9 @@ def main():
             print(result)
         except CalculatorException:
             pass
+        except (EOFError, KeyboardInterrupt):
+            print("\nexiting the calculator...")
+            break
 
 
 if __name__ == '__main__':

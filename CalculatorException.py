@@ -1,7 +1,5 @@
-"""
-general exception class for the calculator
-"""
-
-
 class CalculatorException(Exception):
+    """
+    general exception class for the calculator
+    """
     pass

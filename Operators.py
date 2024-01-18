@@ -1,7 +1,7 @@
 from CalculatorException import CalculatorException
 
 
-class Plus(object):
+class Add(object):
     """
     plus operator class
     """
@@ -13,7 +13,7 @@ class Plus(object):
         return op1 + op2
 
 
-class Minus(object):
+class Sub(object):
     """
     minus operator class
     """
@@ -168,9 +168,9 @@ class Hash(object):
         return res
 
 
-class Negative(object):
+class Minus(object):
     """
-    unary minus operator class. not for use
+    unary minus operator class
     """
     precedence = 2.5  # hope this is what you meant in the document and not 3.5 :|
     location = 0
@@ -180,8 +180,20 @@ class Negative(object):
         return -op
 
 
-OPERATORS = {'+': Plus,
-             '-': Minus,
+class Negative(object):
+    """
+    negative sign operator class
+    """
+    precedence = 100
+    location = 0
+
+    @staticmethod
+    def calc(op):
+        return -op
+
+
+OPERATORS = {'+': Add,
+             '-': Sub,
              '*': Mult,
              '/': Div,
              '^': Power,
@@ -192,4 +204,5 @@ OPERATORS = {'+': Plus,
              '~': Tilde,
              '!': Factorial,
              '#': Hash,
-             '_': Negative}
+             '- ': Minus,
+             '-  ': Negative}
