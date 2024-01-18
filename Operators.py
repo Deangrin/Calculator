@@ -49,8 +49,7 @@ class Div(object):
         try:
             return op1 / op2
         except ZeroDivisionError:
-            print("cannot divide by zero")
-            raise CalculatorException
+            raise CalculatorException("cannot divide by zero")
 
 
 class Power(object):
@@ -63,9 +62,11 @@ class Power(object):
     @staticmethod
     def calc(op1, op2):
         if (-1 < op2 < 0 or 0 < op2 < 1) and op1 < 0:
-            print("cannot take a root out of a negative number")
-            raise CalculatorException
-        return op1 ** op2
+            raise CalculatorException("cannot take a root out of a negative number")
+        try:
+            return op1 ** op2
+        except ZeroDivisionError:
+            raise CalculatorException("zero cannot be raised by a negative power")
 
 
 class Avg(object):
@@ -138,8 +139,7 @@ class Factorial(object):
     @staticmethod
     def calc(op):
         if not op.is_integer() or op < 0:
-            print("factorial operand can only be a positive integer")
-            raise CalculatorException
+            raise CalculatorException("factorial operand can only be a positive integer")
         if op <= 1:
             return 1
         return op * Factorial.calc(op - 1)
@@ -156,15 +156,13 @@ class Hash(object):
     def calc(op):
         res = 0
         if op < 0:
-            print("hash operand must be positive")
-            raise CalculatorException
+            raise CalculatorException("hash operand must be positive")
         for digit in str(op):
             if digit != '.':
                 try:
                     res += int(digit)
                 except ValueError:
-                    print("cannot perform hash on this number (may be inf or nan)")
-                    raise CalculatorException
+                    raise CalculatorException("cannot perform hash on this number (may be inf or nan)")
         return res
 
 
@@ -192,6 +190,7 @@ class Negative(object):
         return -op
 
 
+# available operators
 OPERATORS = {'+': Add,
              '-': Sub,
              '*': Mult,

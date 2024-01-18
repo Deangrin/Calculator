@@ -30,8 +30,7 @@ def construct_number(exp, i):
     try:
         return float(num), pos - i
     except ValueError:
-        print(num, "not a number")
-        raise CalculatorException
+        raise CalculatorException(num + " not a number")
 
 
 def handle_term(exp, i):
@@ -43,20 +42,15 @@ def handle_term(exp, i):
     """
     term = exp[i]
     if term not in OPERATORS and not term.isdigit() and term not in ('.', '(', ')'):
-        print("invalid term:", term)
-        raise CalculatorException
+        raise CalculatorException("invalid term: " + term)
     elif term.isdigit() or term == '.':
         return construct_number(exp, i)
     elif term == '-' and (i == 0 or exp[i-1] == '(' or exp[i-1] in OPERATORS and OPERATORS[exp[i-1]].location != 2):
         minuses = count_minuses(exp, i)
         valid_placement('- ', exp, i + minuses)
         if i == 0 or exp[i - 1] == '(':
-            if minuses % 2 == 1:
-                return '- ', minuses
-            return None, minuses
-        if minuses % 2 == 1:
-            return '-  ', minuses
-        return None, minuses
+            return ('- ', minuses) if minuses % 2 == 1 else (None, minuses)
+        return ('-  ', minuses) if minuses % 2 == 1 else (None, minuses)
     else:
         return term, 1
 
@@ -71,16 +65,13 @@ def valid_placement(term, exp, i):
     """
     if term in OPERATORS and OPERATORS[term].location == 0:
         if i >= len(exp) or exp[i] not in ('(', '.', '-') and not exp[i].isdigit():
-            print(term, "must be followed by a number, a minus or parentheses")
-            raise CalculatorException
+            raise CalculatorException(term + " must be followed by a number, a minus or parentheses")
     elif term in OPERATORS and OPERATORS[term].location == 2:
         if i < len(exp) and (exp[i].isdigit() or exp[i] in ('(', '.')):
-            print(term, "cannot be followed by a number or parentheses")
-            raise CalculatorException
+            raise CalculatorException(term + " cannot be followed by a number or parentheses")
     elif (i < len(exp) and
           (isinstance(term, float) and exp[i] == '(' or term == ')' and (exp[i].isdigit() or exp[i] == '.'))):
-        print("numbers and parentheses must be separated by an operator")
-        raise CalculatorException
+        raise CalculatorException("numbers and parentheses must be separated by an operator")
 
 
 def break_expression(exp):
@@ -118,8 +109,7 @@ def turn_postfix(infix):
             while stack and stack[-1] != '(':
                 postfix.append(stack.pop())
             if not stack:  # can change for try, whatever is preferred...
-                print("unmatched closing parenthesis")
-                raise CalculatorException
+                raise CalculatorException("unmatched closing parenthesis")
             stack.pop()
         else:
             while stack and stack[-1] != '(' and OPERATORS[term].precedence <= OPERATORS[stack[-1]].precedence:
@@ -127,8 +117,7 @@ def turn_postfix(infix):
             stack.append(term)
     while stack:
         if stack[-1] == '(':
-            print("unmatched opening parenthesis")
-            raise CalculatorException
+            raise CalculatorException("unmatched opening parenthesis")
         postfix.append(stack.pop())
     return postfix
 
@@ -148,19 +137,16 @@ def calculate_postfix(postfix):
                 if OPERATORS[term].location == 1:
                     op2 = stack.pop()
                     op1 = stack.pop()
-                    stack.append(OPERATORS[term].calc(op1, op2))
+                    stack.append(round(OPERATORS[term].calc(op1, op2), 10))
                 else:
                     op = stack.pop()
-                    stack.append(OPERATORS[term].calc(op))
+                    stack.append(round(OPERATORS[term].calc(op), 10))
             except (IndexError, TypeError):
-                print("not enough operands for operator:", term)
-                raise CalculatorException
+                raise CalculatorException("not enough operands for operator: " + term)
             except (OverflowError, RecursionError):
-                print("result is too large")
-                raise CalculatorException
+                raise CalculatorException("result is too large")
     if len(stack) != 1:
-        print("invalid expression")
-        raise CalculatorException
+        raise CalculatorException("invalid expression")
     return stack.pop()
 
 
@@ -175,8 +161,8 @@ def main():
             postfix = turn_postfix(infix)
             result = calculate_postfix(postfix)
             print(result)
-        except CalculatorException:
-            pass
+        except CalculatorException as e:
+            print(e)
         except (EOFError, KeyboardInterrupt):
             print("\nexiting the calculator...")
             break
