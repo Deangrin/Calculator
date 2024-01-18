@@ -1,7 +1,7 @@
 from CalculatorException import CalculatorException
 
 
-class Plus(object):
+class Add(object):
     """
     plus operator class
     """
@@ -13,7 +13,7 @@ class Plus(object):
         return op1 + op2
 
 
-class Minus(object):
+class Sub(object):
     """
     minus operator class
     """
@@ -62,6 +62,9 @@ class Power(object):
 
     @staticmethod
     def calc(op1, op2):
+        if (-1 < op2 < 0 or 0 < op2 < 1) and op1 < 0:
+            print("cannot take a root out of a negative number")
+            raise CalculatorException
         return op1 ** op2
 
 
@@ -134,16 +137,63 @@ class Factorial(object):
 
     @staticmethod
     def calc(op):
-        if not isinstance(op, int) or op < 0:
-            print("factorial operator can only be a positive integer")
+        if not op.is_integer() or op < 0:
+            print("factorial operand can only be a positive integer")
             raise CalculatorException
         if op <= 1:
             return 1
         return op * Factorial.calc(op - 1)
 
 
-OPERATORS = {'+': Plus,
-             '-': Minus,
+class Hash(object):
+    """
+    hash operator class
+    """
+    precedence = 6
+    location = 2
+
+    @staticmethod
+    def calc(op):
+        res = 0
+        if op < 0:
+            print("hash operand must be positive")
+            raise CalculatorException
+        for digit in str(op):
+            if digit != '.':
+                try:
+                    res += int(digit)
+                except ValueError:
+                    print("cannot perform hash on this number (may be inf or nan)")
+                    raise CalculatorException
+        return res
+
+
+class Minus(object):
+    """
+    unary minus operator class
+    """
+    precedence = 2.5  # hope this is what you meant in the document and not 3.5 :|
+    location = 0
+
+    @staticmethod
+    def calc(op):
+        return -op
+
+
+class Negative(object):
+    """
+    negative sign operator class
+    """
+    precedence = 100
+    location = 0
+
+    @staticmethod
+    def calc(op):
+        return -op
+
+
+OPERATORS = {'+': Add,
+             '-': Sub,
              '*': Mult,
              '/': Div,
              '^': Power,
@@ -152,4 +202,7 @@ OPERATORS = {'+': Plus,
              '&': Min,
              '%': Modulo,
              '~': Tilde,
-             '!': Factorial}
+             '!': Factorial,
+             '#': Hash,
+             '- ': Minus,
+             '-  ': Negative}
