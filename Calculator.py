@@ -137,12 +137,17 @@ def calculate_postfix(postfix):
                 if OPERATORS[term].location == 1:
                     op2 = stack.pop()
                     op1 = stack.pop()
-                    stack.append(round(OPERATORS[term].calc(op1, op2), 10))
+                    result = float(OPERATORS[term].calc(op1, op2))
                 else:
                     op = stack.pop()
-                    stack.append(round(OPERATORS[term].calc(op), 10))
+                    result = float(OPERATORS[term].calc(op))
+                stack.append(round(result, 10))
+                if result == float('inf'):
+                    raise OverflowError
+                if result == float('nan'):
+                    raise CalculatorException("undefined result")
             except (IndexError, TypeError):
-                raise CalculatorException("not enough operands for operator: " + term)
+                raise CalculatorException("not enough operands for operator " + term)
             except (OverflowError, RecursionError):
                 raise CalculatorException("result is too large")
     if len(stack) != 1:
@@ -150,16 +155,27 @@ def calculate_postfix(postfix):
     return stack.pop()
 
 
+def calculator(exp):
+    """
+    calculates mathematical expressions
+    :param exp: string math expression
+    :return: calculation result of expression
+    :raise: CalculatorException with informative message for incorrect expressions
+    """
+    infix = break_expression(exp)
+    postfix = turn_postfix(infix)
+    result = calculate_postfix(postfix)
+    return result
+
+
 def main():
     """
-    runs the calculator - receives a mathematical expression and prints its calculation result
+    runs the calculator - receives mathematical expressions and prints their calculation results
     """
     while True:
         try:
             exp = input("enter expression to calculate ")
-            infix = break_expression(exp)
-            postfix = turn_postfix(infix)
-            result = calculate_postfix(postfix)
+            result = calculator(exp)
             print(result)
         except CalculatorException as e:
             print(e)

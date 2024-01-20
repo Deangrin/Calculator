@@ -114,7 +114,10 @@ class Modulo(object):
 
     @staticmethod
     def calc(op1, op2):
-        return op1 % op2
+        try:
+            return op1 % op2
+        except ZeroDivisionError:
+            raise CalculatorException("cannot take modulo by zero")
 
 
 class Tilde(object):
@@ -141,7 +144,7 @@ class Factorial(object):
         if not op.is_integer() or op < 0:
             raise CalculatorException("factorial operand can only be a positive integer")
         if op <= 1:
-            return 1
+            return 1.0
         return op * Factorial.calc(op - 1)
 
 
@@ -154,15 +157,12 @@ class Hash(object):
 
     @staticmethod
     def calc(op):
-        res = 0
+        res = 0.0
         if op < 0:
             raise CalculatorException("hash operand must be positive")
         for digit in str(op):
             if digit != '.':
-                try:
-                    res += int(digit)
-                except ValueError:
-                    raise CalculatorException("cannot perform hash on this number (may be inf or nan)")
+                res += int(digit)
         return res
 
 
