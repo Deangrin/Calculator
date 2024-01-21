@@ -4,6 +4,9 @@ from CalculatorException import CalculatorException
 
 
 def test_syntax_errors():
+    """
+    tests for simple syntax errors (to raise CalculatorException)
+    """
     with pytest.raises(CalculatorException):
         calculator("3 ^ * 2")
     with pytest.raises(CalculatorException):
@@ -17,21 +20,33 @@ def test_syntax_errors():
 
 
 def test_gibberish():
+    """
+    test for gibberish string (to raise CalculatorException)
+    """
     with pytest.raises(CalculatorException):
         calculator("3r;)")
 
 
 def test_empty_string():
+    """
+    test for empty string (to raise CalculatorException)
+    """
     with pytest.raises(CalculatorException):
         calculator("")
 
 
 def test_whitespace_string():
+    """
+    test for whitespace string (to raise CalculatorException)
+    """
     with pytest.raises(CalculatorException):
         calculator("  \t ")
 
 
 def test_simple_expressions():
+    """
+    test simple equations (to return correct result)
+    """
     assert calculator("2. ^ 3") == 8
     assert calculator("5 - 10") == -5
     assert calculator("2 + 1.6") == 3.6
@@ -50,6 +65,9 @@ def test_simple_expressions():
 
 
 def test_complex_expressions():
+    """
+    test complex equations (to return correct result)
+    """
     assert calculator("~(100 / 2 @ 4! % 2) * 9 $ 3! ^ 2") == -8100
     assert calculator("-10 $ (8 & (4 @ 9))# / ---11 + .5") == 1.5
     assert calculator("(4 + 8)#! * (6! - -4 ^ 4 - 4 * 100) ^ 0.5") == 48

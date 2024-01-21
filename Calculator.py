@@ -66,12 +66,10 @@ def valid_placement(term, exp, i):
     if term in OPERATORS and OPERATORS[term].location == 0:
         if i >= len(exp) or exp[i] not in ('(', '.', '-') and not exp[i].isdigit():
             raise CalculatorException(term + " must be followed by a number, a minus or parentheses")
-    elif term in OPERATORS and OPERATORS[term].location == 2:
-        if i < len(exp) and (exp[i].isdigit() or exp[i] in ('(', '.')):
-            raise CalculatorException(term + " cannot be followed by a number or parentheses")
-    elif (i < len(exp) and
-          (isinstance(term, float) and exp[i] == '(' or term == ')' and (exp[i].isdigit() or exp[i] == '.'))):
-        raise CalculatorException("numbers and parentheses must be separated by an operator")
+    elif ((term in OPERATORS and OPERATORS[term].location == 2 or term == ')' or isinstance(term, float))
+          and i < len(exp)):
+        if exp[i].isdigit() or exp[i] in ('(', '.') or exp[i] in OPERATORS and OPERATORS[exp[i]].location == 0:
+            raise CalculatorException(str(term) + " cannot be followed by a number or parentheses")
 
 
 def break_expression(exp):
@@ -137,11 +135,10 @@ def calculate_postfix(postfix):
                 if OPERATORS[term].location == 1:
                     op2 = stack.pop()
                     op1 = stack.pop()
-                    result = float(OPERATORS[term].calc(op1, op2))
+                    result = OPERATORS[term].calc(op1, op2)
                 else:
                     op = stack.pop()
-                    result = float(OPERATORS[term].calc(op))
-                stack.append(round(result, 10))
+                    result = OPERATORS[term].calc(op)
                 if result == float('inf'):
                     raise OverflowError
                 if result == float('nan'):
@@ -150,6 +147,7 @@ def calculate_postfix(postfix):
                 raise CalculatorException("not enough operands for operator " + term)
             except (OverflowError, RecursionError):
                 raise CalculatorException("result is too large")
+            stack.append(round(float(result), 10))
     if len(stack) != 1:
         raise CalculatorException("invalid expression")
     return stack.pop()

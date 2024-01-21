@@ -61,7 +61,7 @@ class Power(object):
 
     @staticmethod
     def calc(op1, op2):
-        if (-1 < op2 < 0 or 0 < op2 < 1) and op1 < 0:
+        if not op2.is_integer() and op1 < 0:
             raise CalculatorException("cannot take a root out of a negative number")
         try:
             return op1 ** op2
