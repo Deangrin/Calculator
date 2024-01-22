@@ -2,7 +2,7 @@ from Operators import OPERATORS
 from CalculatorException import CalculatorException
 
 
-def count_minuses(exp, i):
+def count_minuses(exp: str, i: int) -> int:
     """
     counts the number of consecutive minuses at a given index in an expression
     :param exp: string expression containing minuses
@@ -15,7 +15,7 @@ def count_minuses(exp, i):
     return count
 
 
-def construct_number(exp, i):
+def construct_number(exp: str, i: int) -> tuple[float, int]:
     """
     constructs a number from a given index in an expression
     :param exp: string expression containing the number
@@ -33,7 +33,7 @@ def construct_number(exp, i):
         raise CalculatorException(num + " not a number")
 
 
-def handle_term(exp, i):
+def handle_term(exp: str, i: int) -> tuple[str | float, int]:
     """
     handles a single term in a math expression
     :param exp: string math expression
@@ -55,7 +55,7 @@ def handle_term(exp, i):
         return term, 1
 
 
-def valid_placement(term, exp, i):
+def valid_placement(term: str | float, exp: str, i: int):
     """
     checks if given term and its following term (exp[i]) can be placed together
     :param term: current term
@@ -72,7 +72,7 @@ def valid_placement(term, exp, i):
             raise CalculatorException(str(term) + " cannot be followed by a number or parentheses")
 
 
-def break_expression(exp):
+def break_expression(exp: str) -> list[str | float]:
     """
     breaks a math expression into individual terms
     :param exp: math expression to break
@@ -90,7 +90,7 @@ def break_expression(exp):
     return terms
 
 
-def turn_postfix(infix):
+def turn_postfix(infix: list[str | float]) -> list[str | float]:
     """
     turns an infix mathematical expression to its postfix representation
     :param infix: list of infix math expression
@@ -120,7 +120,7 @@ def turn_postfix(infix):
     return postfix
 
 
-def calculate_postfix(postfix):
+def calculate_postfix(postfix: list[str | float]) -> float:
     """
     calculates a mathematical expression in postfix representation
     :param postfix: list of postfix math expression
@@ -139,21 +139,21 @@ def calculate_postfix(postfix):
                 else:
                     op = stack.pop()
                     result = OPERATORS[term].calc(op)
-                if result == float('inf'):
+                if result == float('inf') or result == float('-inf'):
                     raise OverflowError
                 if result == float('nan'):
                     raise CalculatorException("undefined result")
             except (IndexError, TypeError):
                 raise CalculatorException("not enough operands for operator " + term)
             except (OverflowError, RecursionError):
-                raise CalculatorException("result is too large")
+                raise CalculatorException("result is too large or small")
             stack.append(round(float(result), 10))
     if len(stack) != 1:
         raise CalculatorException("invalid expression")
     return stack.pop()
 
 
-def calculator(exp):
+def calculator(exp: str) -> float:
     """
     calculates mathematical expressions
     :param exp: string math expression

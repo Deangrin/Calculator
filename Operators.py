@@ -9,7 +9,7 @@ class Add(object):
     location = 1
 
     @staticmethod
-    def calc(op1, op2):
+    def calc(op1: float, op2: float) -> float:
         return op1 + op2
 
 
@@ -21,7 +21,7 @@ class Sub(object):
     location = 1
 
     @staticmethod
-    def calc(op1, op2):
+    def calc(op1: float, op2: float) -> float:
         return op1 - op2
 
 
@@ -33,7 +33,7 @@ class Mult(object):
     location = 1
 
     @staticmethod
-    def calc(op1, op2):
+    def calc(op1: float, op2: float) -> float:
         return op1 * op2
 
 
@@ -45,7 +45,7 @@ class Div(object):
     location = 1
 
     @staticmethod
-    def calc(op1, op2):
+    def calc(op1: float, op2: float) -> float:
         try:
             return op1 / op2
         except ZeroDivisionError:
@@ -60,7 +60,7 @@ class Power(object):
     location = 1
 
     @staticmethod
-    def calc(op1, op2):
+    def calc(op1: float, op2: float) -> float:
         if not op2.is_integer() and op1 < 0:
             raise CalculatorException("cannot take a root out of a negative number")
         try:
@@ -77,7 +77,7 @@ class Avg(object):
     location = 1
 
     @staticmethod
-    def calc(op1, op2):
+    def calc(op1: float, op2: float) -> float:
         return (op1 + op2) / 2
 
 
@@ -89,7 +89,7 @@ class Max(object):
     location = 1
 
     @staticmethod
-    def calc(op1, op2):
+    def calc(op1: float, op2: float) -> float:
         return max(op1, op2)
 
 
@@ -101,7 +101,7 @@ class Min(object):
     location = 1
 
     @staticmethod
-    def calc(op1, op2):
+    def calc(op1: float, op2: float) -> float:
         return min(op1, op2)
 
 
@@ -113,7 +113,7 @@ class Modulo(object):
     location = 1
 
     @staticmethod
-    def calc(op1, op2):
+    def calc(op1: float, op2: float) -> float:
         try:
             return op1 % op2
         except ZeroDivisionError:
@@ -128,7 +128,7 @@ class Tilde(object):
     location = 0
 
     @staticmethod
-    def calc(op):
+    def calc(op: float) -> float:
         return -op
 
 
@@ -140,12 +140,15 @@ class Factorial(object):
     location = 2
 
     @staticmethod
-    def calc(op):
+    def calc(op: float) -> float:
         if not op.is_integer() or op < 0:
             raise CalculatorException("factorial operand can only be a positive integer")
-        if op <= 1:
-            return 1.0
-        return op * Factorial.calc(op - 1)
+        result = 1.0
+        for i in range(int(op)):
+            result *= i + 1
+            if type(result) is float and result == float('inf'):
+                raise OverflowError
+        return result
 
 
 class Hash(object):
@@ -156,11 +159,13 @@ class Hash(object):
     location = 2
 
     @staticmethod
-    def calc(op):
-        res = 0.0
+    def calc(op: float) -> float:
         if op < 0:
             raise CalculatorException("hash operand must be positive")
+        res = 0.0
         for digit in str(op):
+            if digit == 'e':  # python returns wrong information for format() of e
+                break
             if digit != '.':
                 res += int(digit)
         return res
@@ -174,7 +179,7 @@ class Minus(object):
     location = 0
 
     @staticmethod
-    def calc(op):
+    def calc(op: float) -> float:
         return -op
 
 
@@ -186,7 +191,7 @@ class Negative(object):
     location = 0
 
     @staticmethod
-    def calc(op):
+    def calc(op: float) -> float:
         return -op
 
 
