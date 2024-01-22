@@ -177,7 +177,7 @@ def main():
             print(result)
         except CalculatorException as e:
             print(e)
-        except (EOFError, KeyboardInterrupt):
+        except EOFError:
             print("\nexiting the calculator...")
             break
 
